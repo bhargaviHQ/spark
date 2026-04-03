@@ -74,7 +74,7 @@ private[spark] class TorrentBroadcast[T: ClassTag](obj: T, id: Long, serializedO
   /** The compression codec to use, or None if compression is disabled */
   @transient private var compressionCodec: Option[CompressionCodec] = _
   /** Size of each block. Default value is 4MB.  This value is only read by the broadcaster. */
-  @transient private var blockSize: Int = _
+  @transient private var blockSize: Long = _
   /** Is the execution in local mode. */
   @transient private var isLocalMaster: Boolean = _
 
@@ -87,8 +87,9 @@ private[spark] class TorrentBroadcast[T: ClassTag](obj: T, id: Long, serializedO
     } else {
       None
     }
-    // Note: use getSizeAsKb (not bytes) to maintain compatibility if no units are provided
-    blockSize = conf.get(config.BROADCAST_BLOCKSIZE).toInt * 1024
+    // Note: use getSizeAsKb (not bytes) to maintain compatibility if no units are provided.
+    // Keep as Long to avoid integer overflow when the configured size is close to 2 GiB.
+    blockSize = conf.get(config.BROADCAST_BLOCKSIZE) * 1024
     checksumEnabled = conf.get(config.BROADCAST_CHECKSUM)
     isLocalMaster = Utils.isLocalMaster(conf)
   }
@@ -358,10 +359,12 @@ private object TorrentBroadcast extends Logging {
 
   def blockifyObject[T: ClassTag](
       obj: T,
-      blockSize: Int,
+      blockSize: Long,
       serializer: Serializer,
       compressionCodec: Option[CompressionCodec]): Array[ByteBuffer] = {
-    val cbbos = new ChunkedByteBufferOutputStream(blockSize, ByteBuffer.allocate)
+    require(blockSize <= Int.MaxValue,
+      s"Broadcast block size $blockSize exceeds maximum supported size of ${Int.MaxValue} bytes")
+    val cbbos = new ChunkedByteBufferOutputStream(blockSize.toInt, ByteBuffer.allocate)
     val out = compressionCodec.map(c => c.compressedOutputStream(cbbos)).getOrElse(cbbos)
     val ser = serializer.newInstance()
     val serOut = ser.serializeStream(out)
