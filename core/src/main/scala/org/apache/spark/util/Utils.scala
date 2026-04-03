@@ -3168,6 +3168,7 @@ private[spark] object Utils
    */
   def median(sizes: Array[Long], alreadySorted: Boolean): Long = {
     val len = sizes.length
+    require(len > 0, "Cannot compute median of an empty array")
     val sortedSize = if (alreadySorted) sizes else sizes.sorted
     len match {
       case _ if (len % 2 == 0) =>
