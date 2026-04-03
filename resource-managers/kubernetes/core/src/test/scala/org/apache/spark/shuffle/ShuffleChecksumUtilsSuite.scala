@@ -33,7 +33,7 @@ class ShuffleChecksumUtilsSuite extends SparkFunSuite {
   private val indexBlockId = ShuffleIndexBlockId(0, 0, 0)
   private val checksumBlockId = ShuffleChecksumBlockId(0, 0, 0)
 
-  test("verifyChecksum fails if dataFile doesnt' exist") {
+  test("verifyChecksum fails if dataFile doesn't exist") {
     assert(!verifyChecksum(ALGORITHM, dataBlockId, null, null, null))
     assert(!verifyChecksum(ALGORITHM, dataBlockId, null, null, NON_EXIST_FILE))
   }
