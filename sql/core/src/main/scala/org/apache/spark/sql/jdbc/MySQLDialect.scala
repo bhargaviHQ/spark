@@ -349,7 +349,7 @@ private case class MySQLDialect() extends JdbcDialect with SQLConfHelper with No
           val indexType = rs.getString("index_type")
           val indexComment = rs.getString("index_comment")
           if (indexMap.contains(indexName)) {
-            val index = indexMap.get(indexName).get
+            val index = indexMap(indexName)
             val newIndex = new TableIndex(indexName, indexType,
               index.columns() :+ FieldReference(colName),
               index.columnProperties, index.properties)
