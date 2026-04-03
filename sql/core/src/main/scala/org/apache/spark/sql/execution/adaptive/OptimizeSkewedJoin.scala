@@ -92,12 +92,8 @@ case class OptimizeSkewedJoin(ensureRequirements: EnsureRequirements)
   }
 
   private def getSizeInfo(medianSize: Long, sizes: Array[Long]): String = {
-    if (sizes.isEmpty) {
-      s"median size: $medianSize, max size: N/A, min size: N/A, avg size: N/A"
-    } else {
-      s"median size: $medianSize, max size: ${sizes.max}, min size: ${sizes.min}, avg size: " +
-        sizes.sum / sizes.length
-    }
+    s"median size: $medianSize, max size: ${sizes.max}, min size: ${sizes.min}, avg size: " +
+      sizes.sum / sizes.length
   }
 
   /*
